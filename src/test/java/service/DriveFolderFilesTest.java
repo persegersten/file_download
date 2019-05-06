@@ -1,7 +1,10 @@
+package service;
+
 import model.DriveFolder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import service.DriveFolderFiles;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +17,7 @@ import java.util.List;
 class DriveFolderFilesTest {
 
     Path TEST_FILE = Path.of("target", "test.json");
-    Path TEST_OUTPUT_DIR = Path.of("gurka");
+    Path TEST_OUTPUT_DIR = Path.of("target", "json_test");
 
     @Before
     public void setup() throws IOException {
