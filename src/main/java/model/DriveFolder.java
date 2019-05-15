@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.Objects;
 
 public class DriveFolder {
-    private final String name;
-    private final String id;
-    private final List<DriveFolder> children;
+    private String name;
+    private String id;
+    private List<DriveFolder> children;
+
+    public DriveFolder() {
+    }
 
     public DriveFolder(String name, String id, List<DriveFolder> children) {
         this.name = name;

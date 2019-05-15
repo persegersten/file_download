@@ -1,5 +1,6 @@
 package service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.DriveFolder;
 
@@ -16,6 +17,6 @@ public class DriveFolderFiles {
 
     public static List<DriveFolder> read(Path path) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        return (List<DriveFolder>) objectMapper.readValue(path.toFile(), List.class);
+        return (List<DriveFolder>) objectMapper.readValue(path.toFile(), new TypeReference<List<DriveFolder>>(){});
     }
 }

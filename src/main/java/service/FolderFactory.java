@@ -15,8 +15,12 @@ public class FolderFactory {
     }
 
     private static void createDirectory(Path path) {
+        if (Files.exists(path)) {
+            System.out.println("WARN already exists: " + path);
+            return;
+        }
         try {
-            System.out.println("mkdir " + path.getFileName());
+            System.out.println("mkdir " + path);
             Files.createDirectory(path);
         } catch (IOException e) {
             throw new IllegalStateException(e);

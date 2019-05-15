@@ -2,10 +2,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import model.DriveFolder;
-import service.AppProperties;
-import service.DriveConnection;
-import service.DriveFolderFiles;
-import service.FolderFactory;
+import service.*;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -22,17 +19,38 @@ public class DriveDownloader {
         AppProperties.load(args);
         Drive service = DriveConnection.getService();
 
-        Path driveFilesPath = AppProperties.getDriveFilesPath();
-        if (!Files.exists(driveFilesPath)) {
-            System.out.println("Create: " + driveFilesPath + " Fetch info from drive");
-            List<DriveFolder> folders = fetchFolders(service);
-            DriveFolderFiles.write(driveFilesPath, folders);
-            System.out.println("Fetched done");
+        Path driveFilesname = AppProperties.getDriveFilenamePath();
+        if (Files.exists(driveFilesname)) {
+            System.out.println("Remote folder info files already exists: " + driveFilesname);
+        } else {
+            fetchRemoteFolderInfo(service, driveFilesname);
         }
 
+        Path localRoot = AppProperties.getLocalRoot();
+        List<DriveFolder> folders = DriveFolderFiles.read(driveFilesname);
+        if (Files.exists(localRoot)) {
+            System.out.println("Local folders already exists: " + localRoot);
+        } else {
+            createLocalFolders(localRoot, folders);
+        }
+
+        downloadFiles(service, localRoot, folders);
+    }
+
+    private static void downloadFiles(Drive service, Path localRoot, List<DriveFolder> folders) {
+        FilesDownloader.downloadFolder(service, localRoot, folders);
+    }
+
+    private static void createLocalFolders(Path localRoot, List<DriveFolder> folders) throws IOException {
         System.out.println("Create folder structure");
-        List<DriveFolder> folders = DriveFolderFiles.read(driveFilesPath);
-        FolderFactory.createFolder(Path.of("temp"), folders);
+        FolderFactory.createFolder(localRoot, folders);
+    }
+
+    private static void fetchRemoteFolderInfo(Drive service, Path driveFilesPath) throws IOException {
+        System.out.println("Create: " + driveFilesPath + " Fetch info from drive");
+        List<DriveFolder> folders = fetchFolders(service);
+        DriveFolderFiles.write(driveFilesPath, folders);
+        System.out.println("Fetched done");
     }
 
     private static List<DriveFolder> fetchFolders(Drive service) {
