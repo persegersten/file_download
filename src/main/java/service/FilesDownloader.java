@@ -1,24 +1,95 @@
 package service;
 
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpResponse;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 import model.DriveFolder;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 public class FilesDownloader {
-    public static void downloadFolder(Drive service, Path localRoot, List<DriveFolder> folders) {
+    public static void downloadFolder(Drive service, Path localRoot, List<DriveFolder> folders) throws IOException {
         downLoadFolderInternal(service, localRoot, "root", folders);
     }
 
-    private static void downLoadFolderInternal(Drive service, Path localFolder, String remoteID, List<DriveFolder> children) {
-        for (DriveFolder child  : children) {
+    private static void downLoadFolderInternal(Drive service, Path localFolder, String remoteID, List<DriveFolder> children) throws IOException {
+        if (!Files.exists(localFolder)) {
+            throw new IllegalStateException("Local target folder does not exist:" + localFolder);
+        }
+
+        downloadFiles(service, localFolder, remoteID);
+
+        for (DriveFolder child : children) {
             downLoadFolderInternal(service,
                     Path.of(localFolder.toString(), child.getName()),
                     child.getId(),
                     child.getChildren());
         }
-        // TODO ladda ner remoteID till localFolder
+    }
+
+    private static void downloadFiles(Drive service, Path localFolder, String remoteID) throws IOException {
+        FileList result = service.files().list()
+                .setQ("'" + remoteID + "' in parents")
+                //.setQ("'appDataFolder' in parents")
+                .setPageSize(100)
+                .setFields("nextPageToken, files(id, name)")
+                .execute();
+
+        List<File> files = result.getFiles();
+
+        int count = 0;
+        int total = 0;
+        for (File file : files) {
+            total++;
+            Path locaFilePath = null;
+            try {
+                locaFilePath = Path.of(localFolder.toString(), file.getName());
+            } catch (InvalidPathException e) {
+                System.out.println("Invalid path: " + file.getName());
+                continue;
+            }
+            if (!Files.exists(locaFilePath) && !Files.isDirectory(locaFilePath)) {
+                download(service, locaFilePath, file);
+                count++;
+            }
+        }
+        System.out.println("Downloaded " + count + " of " + total + " files");
+    }
+
+    private static void download(Drive service, Path locaFilePath, File file) throws IOException {
+        String filename = file.getName();
+        String ex = filename.substring(filename.lastIndexOf(".") + 1);
+
+        if (ex.equalsIgnoreCase("pdf")
+                || ex.equalsIgnoreCase("jpg")
+                || ex.equalsIgnoreCase("png")) {
+
+            System.out.println("Download: " + file.getName());
+            Drive.Files.Get get = service.files().get(file.getId());
+            HttpResponse resp = get.executeMedia();
+
+            // String webContentLink = Objects.requireNonNull(file.getWebContentLink(), "No web contennt link for file: " + file);
+            // HttpResponse resp =
+            //        service.getRequestFactory().buildGetRequest(new GenericUrl(webContentLink))
+            //                .execute();
+            try (InputStream instream = resp.getContent();
+                 FileOutputStream output = new FileOutputStream(locaFilePath.toFile())) {
+                int l;
+                byte[] tmp = new byte[2048];
+                while ((l = instream.read(tmp)) != -1) {
+                    output.write(tmp, 0, l);
+                }
+            }
+        }
     }
 
 }

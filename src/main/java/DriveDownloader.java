@@ -33,12 +33,16 @@ public class DriveDownloader {
         } else {
             createLocalFolders(localRoot, folders);
         }
-
+        System.out.println("Start downloading files...");
         downloadFiles(service, localRoot, folders);
     }
 
     private static void downloadFiles(Drive service, Path localRoot, List<DriveFolder> folders) {
-        FilesDownloader.downloadFolder(service, localRoot, folders);
+        try {
+            FilesDownloader.downloadFolder(service, localRoot, folders);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to download files to local folder", e);
+        }
     }
 
     private static void createLocalFolders(Path localRoot, List<DriveFolder> folders) throws IOException {
