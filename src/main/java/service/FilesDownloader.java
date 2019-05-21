@@ -1,6 +1,5 @@
 package service;
 
-import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
@@ -14,9 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 
 public class FilesDownloader {
+    private static final Path TEMP_FILE = Path.of("temporary.download.file");
+
     public static void downloadFolder(Drive service, Path localRoot, List<DriveFolder> folders) throws IOException {
         downLoadFolderInternal(service, localRoot, "root", folders);
     }
@@ -57,7 +57,11 @@ public class FilesDownloader {
                 System.out.println("Invalid path: " + file.getName());
                 continue;
             }
-            if (!Files.exists(locaFilePath) && !Files.isDirectory(locaFilePath)) {
+            if (Files.isDirectory(locaFilePath)) {
+                System.out.println("Path is a directory: " + locaFilePath);
+            } else if (Files.exists(locaFilePath)) {
+                System.out.println("File exists on local path: " + locaFilePath);
+            } else {
                 download(service, locaFilePath, file);
                 count++;
             }
@@ -73,7 +77,7 @@ public class FilesDownloader {
                 || ex.equalsIgnoreCase("jpg")
                 || ex.equalsIgnoreCase("png")) {
 
-            System.out.println("Download: " + file.getName());
+            System.out.println("Download: " + file.getName() + " to " + locaFilePath.toAbsolutePath());
             Drive.Files.Get get = service.files().get(file.getId());
             HttpResponse resp = get.executeMedia();
 
@@ -82,13 +86,15 @@ public class FilesDownloader {
             //        service.getRequestFactory().buildGetRequest(new GenericUrl(webContentLink))
             //                .execute();
             try (InputStream instream = resp.getContent();
-                 FileOutputStream output = new FileOutputStream(locaFilePath.toFile())) {
+                 FileOutputStream output = new FileOutputStream(TEMP_FILE.toFile())) {
                 int l;
                 byte[] tmp = new byte[2048];
                 while ((l = instream.read(tmp)) != -1) {
                     output.write(tmp, 0, l);
                 }
             }
+
+            Files.move(TEMP_FILE, locaFilePath);
         }
     }
 
