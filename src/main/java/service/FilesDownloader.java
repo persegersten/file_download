@@ -5,6 +5,8 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import model.DriveFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class FilesDownloader {
+    private static Logger logger = LoggerFactory.getLogger(FilesDownloader.class);
     private static final Path TEMP_FILE = Path.of("temporary.download.file");
 
     public static void downloadFolder(Drive service, Path localRoot, List<DriveFolder> folders) throws IOException {
@@ -58,15 +61,15 @@ public class FilesDownloader {
                 continue;
             }
             if (Files.isDirectory(locaFilePath)) {
-                System.out.println("Path is a directory: " + locaFilePath);
+                logger.info("Path is a directory: {}", locaFilePath);
             } else if (Files.exists(locaFilePath)) {
-                System.out.println("File exists on local path: " + locaFilePath);
+                logger.info("File exists on local path: {}", locaFilePath);
             } else {
                 download(service, locaFilePath, file);
                 count++;
             }
         }
-        System.out.println("Downloaded " + count + " of " + total + " files");
+        logger.info("Downloaded {} of {} files", count, total);
     }
 
     private static void download(Drive service, Path locaFilePath, File file) throws IOException {
@@ -77,7 +80,7 @@ public class FilesDownloader {
                 || ex.equalsIgnoreCase("jpg")
                 || ex.equalsIgnoreCase("png")) {
 
-            System.out.println("Download: " + file.getName() + " to " + locaFilePath.toAbsolutePath());
+            logger.info("Download: {} to {}", file.getName(), locaFilePath.toAbsolutePath());
             Drive.Files.Get get = service.files().get(file.getId());
             HttpResponse resp = get.executeMedia();
 

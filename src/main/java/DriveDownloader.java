@@ -2,6 +2,8 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import model.DriveFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.*;
 
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DriveDownloader {
+    private static Logger logger = LoggerFactory.getLogger(DriveDownloader.class);
 
     public static void main(String... args) throws IOException, GeneralSecurityException {
         AppProperties.load(args);
@@ -21,7 +24,7 @@ public class DriveDownloader {
 
         Path driveFilesname = AppProperties.getDriveFilenamePath();
         if (Files.exists(driveFilesname)) {
-            System.out.println("Remote folder info files already exists: " + driveFilesname);
+            logger.info("Remote folder info files already exists: {}", driveFilesname);
         } else {
             fetchRemoteFolderInfo(service, driveFilesname);
         }
@@ -29,11 +32,11 @@ public class DriveDownloader {
         Path localRoot = AppProperties.getLocalRoot();
         List<DriveFolder> folders = DriveFolderFiles.read(driveFilesname);
         if (Files.exists(localRoot)) {
-            System.out.println("Local folders already exists: " + localRoot);
+            logger.info("Local folders already exists: {}", localRoot);
         } else {
             createLocalFolders(localRoot, folders);
         }
-        System.out.println("Start downloading files...");
+        logger.info("Start downloading files...");
         downloadFiles(service, localRoot, folders);
     }
 
@@ -46,15 +49,15 @@ public class DriveDownloader {
     }
 
     private static void createLocalFolders(Path localRoot, List<DriveFolder> folders) throws IOException {
-        System.out.println("Create folder structure");
+        logger.info("Create folder structure");
         FolderFactory.createFolder(localRoot, folders);
     }
 
     private static void fetchRemoteFolderInfo(Drive service, Path driveFilesPath) throws IOException {
-        System.out.println("Create: " + driveFilesPath + " Fetch info from drive");
+        logger.info("Create: {} Fetch info from drive", driveFilesPath);
         List<DriveFolder> folders = fetchFolders(service);
         DriveFolderFiles.write(driveFilesPath, folders);
-        System.out.println("Fetched done");
+        logger.info("Fetched done");
     }
 
     private static List<DriveFolder> fetchFolders(Drive service) {
@@ -100,7 +103,7 @@ public class DriveDownloader {
     }
 
     private static DriveFolder createDriveFolder(Drive service, File file) {
-        System.out.printf("%s (%s)\n", file.getName(), file.getId());
+        logger.info("{} {}", file.getName(), file.getId());
         return new DriveFolder(file.getName(), file.getId(), fetchFilesInFolder(service, file.getId()));
     }
 
