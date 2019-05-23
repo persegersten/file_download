@@ -1,2 +1,3 @@
 drive.files=drive.files.json
 local.root=temp2
+extensions=pdf,jpg,png

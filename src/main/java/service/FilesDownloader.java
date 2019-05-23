@@ -76,9 +76,7 @@ public class FilesDownloader {
         String filename = file.getName();
         String ex = filename.substring(filename.lastIndexOf(".") + 1);
 
-        if (ex.equalsIgnoreCase("pdf")
-                || ex.equalsIgnoreCase("jpg")
-                || ex.equalsIgnoreCase("png")) {
+        if (AppProperties.getExtensions().contains(ex.toLowerCase())) {
 
             logger.info("Download: {} to {}", file.getName(), locaFilePath.toAbsolutePath());
             Drive.Files.Get get = service.files().get(file.getId());
