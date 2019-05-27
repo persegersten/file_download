@@ -9,7 +9,7 @@ drive.files - File name of google drive folder structure.
 
 local.root - Path to local storage folder.
 
-extensions= - Comma separated list of file extensions of files to download from remote drive.
+extensions - Comma separated list of file extensions of files to download from remote drive.
 
 Copy the file 'resourse/credentials.json.template' to 'resourse/credentials.json'
 
