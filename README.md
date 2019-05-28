@@ -13,11 +13,8 @@ Modify following parameters:
 
 *extensions* - Comma separated list of file extensions of files to download from remote drive.
 
-Copy the file 'resourse/credentials.json.template' to 'resourse/credentials.json'
-
-Copy the file 'credentials.json.template' to 'credentials.json' and update the configuration. You must
-enable youre Drive API at https://console.developers.google.com
-You must register and autohrize access to your drive. Follow the istructions on https://developers.google.com/drive/api/v3/quickstart/java
+You must enable your Drive API at https://console.developers.google.com
+You must also register and authorize access to your drive. Follow the istructions on https://developers.google.com/drive/api/v3/quickstart/java
  and download the credentials.json into the 'src/main/resources' folder.
 
 # run application
