@@ -3,7 +3,6 @@ package service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -26,7 +25,7 @@ public class AppProperties {
 
         Properties properties = new Properties();
         try {
-            properties.load(new FileReader(propertyFile.toFile()));
+            properties.load(AppProperties.class.getClassLoader().getResourceAsStream(propertyFile.toString()));
         } catch (IOException e) {
             logger.info(propertyFile.toAbsolutePath() + " not found, running with default values");
             properties.put("drive.files", "drive.files.json");
