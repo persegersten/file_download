@@ -1,3 +1,4 @@
 drive.files=drive.files.json
 local.root=temp2
+remote.root='root' or ID of remote folder
 extensions=pdf,jpg,png

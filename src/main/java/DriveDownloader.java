@@ -26,10 +26,11 @@ public class DriveDownloader {
         if (Files.exists(driveFilesname)) {
             logger.info("Remote folder info files already exists: {}", driveFilesname);
         } else {
-            fetchRemoteFolderInfo(service, driveFilesname);
+            fetchRemoteFolderInfo(service, driveFilesname, AppProperties.getRemoteId());
         }
 
         Path localRoot = AppProperties.getLocalRoot();
+        String remoteId = AppProperties.getRemoteId();
         List<DriveFolder> folders = DriveFolderFiles.read(driveFilesname);
         if (Files.exists(localRoot)) {
             logger.info("Local folders already exists: {}", localRoot);
@@ -37,12 +38,12 @@ public class DriveDownloader {
             createLocalFolders(localRoot, folders);
         }
         logger.info("Start downloading files...");
-        downloadFiles(service, localRoot, folders);
+        downloadFiles(service, localRoot, remoteId, folders);
     }
 
-    private static void downloadFiles(Drive service, Path localRoot, List<DriveFolder> folders) {
+    private static void downloadFiles(Drive service, Path localRoot, String remoteId, List<DriveFolder> folders) {
         try {
-            FilesDownloader.downloadFolder(service, localRoot, folders);
+            FilesDownloader.downloadFolder(service, localRoot, remoteId, folders);
         } catch (IOException e) {
             throw new RuntimeException("Failed to download files to local folder", e);
         }
@@ -53,15 +54,15 @@ public class DriveDownloader {
         FolderFactory.createFolder(localRoot, folders);
     }
 
-    private static void fetchRemoteFolderInfo(Drive service, Path driveFilesPath) throws IOException {
+    private static void fetchRemoteFolderInfo(Drive service, Path driveFilesPath, String remoteId) throws IOException {
         logger.info("Create: {} Fetch info from drive", driveFilesPath);
-        List<DriveFolder> folders = fetchFolders(service);
+        List<DriveFolder> folders = fetchFolders(service, remoteId);
         DriveFolderFiles.write(driveFilesPath, folders);
         logger.info("Fetched done");
     }
 
-    private static List<DriveFolder> fetchFolders(Drive service) {
-        return fetchFilesInFolder(service, "root");
+    private static List<DriveFolder> fetchFolders(Drive service, String remoteId) {
+        return fetchFilesInFolder(service, remoteId);
     }
 
     private static List<DriveFolder> fetchFilesInFolder(Drive service, String parentID) {

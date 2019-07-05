@@ -20,8 +20,8 @@ public class FilesDownloader {
     private static Logger logger = LoggerFactory.getLogger(FilesDownloader.class);
     private static final Path TEMP_FILE = Path.of("temporary.download.file");
 
-    public static void downloadFolder(Drive service, Path localRoot, List<DriveFolder> folders) throws IOException {
-        downLoadFolderInternal(service, localRoot, "root", folders);
+    public static void downloadFolder(Drive service, Path localRoot, String remoteRoot, List<DriveFolder> folders) throws IOException {
+        downLoadFolderInternal(service, localRoot, remoteRoot, folders);
     }
 
     private static void downLoadFolderInternal(Drive service, Path localFolder, String remoteID, List<DriveFolder> children) throws IOException {

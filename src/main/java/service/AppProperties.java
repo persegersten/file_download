@@ -15,6 +15,7 @@ public class AppProperties {
     private static Logger logger = LoggerFactory.getLogger(AppProperties.class);
     private static Path driveFilenamePath;
     private static Path localRoot;
+    private static String remoteRoot;
     private static Path propertyFile = Path.of("download.config");
     private static Set<String> extensions;
 
@@ -30,6 +31,7 @@ public class AppProperties {
             logger.info(propertyFile.toAbsolutePath() + " not found, running with default values");
             properties.put("drive.files", "drive.files.json");
             properties.put("local.root", "temp");
+            properties.put("remote.root", "root");
             properties.put("extensions", "pdf,jpg,png");
         }
 
@@ -37,6 +39,7 @@ public class AppProperties {
 
         driveFilenamePath = Path.of(properties.getProperty("drive.files"));
         localRoot = Path.of(properties.getProperty("local.root"));
+        remoteRoot = properties.getProperty("remote.root");
         extensions = Collections.unmodifiableSet(Stream.of(properties.get("extensions").toString().split(","))
                 .map(String::trim)
                 .collect(Collectors.toSet()));
@@ -48,6 +51,10 @@ public class AppProperties {
 
     public static Path getLocalRoot() {
         return localRoot;
+    }
+
+    public static String getRemoteId() {
+        return remoteRoot;
     }
 
     public static Set<String> getExtensions() {
