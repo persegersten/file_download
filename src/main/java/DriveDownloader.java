@@ -49,7 +49,7 @@ public class DriveDownloader {
         }
     }
 
-    private static void createLocalFolders(Path localRoot, List<DriveFolder> folders) throws IOException {
+    private static void createLocalFolders(Path localRoot, List<DriveFolder> folders) {
         logger.info("Create folder structure");
         FolderFactory.createFolder(localRoot, folders);
     }
@@ -79,7 +79,7 @@ public class DriveDownloader {
     }
 
     private static List<File> retrieveAllFiles(Drive service, String parentID) throws IOException {
-        List<File> result = new ArrayList<File>();
+        List<File> result = new ArrayList<>();
         Drive.Files.List request = service.files().list();
 
         do {

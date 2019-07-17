@@ -47,7 +47,7 @@ public class FilesDownloader {
         int total = 0;
         for (File file : files) {
             total++;
-            Path locaFilePath = null;
+            Path locaFilePath;
             try {
                 locaFilePath = Path.of(localFolder.toString(), file.getName());
             } catch (InvalidPathException e) {
@@ -67,7 +67,7 @@ public class FilesDownloader {
     }
 
     private static List<File> retrieveAllFiles(Drive service, String parentID) throws IOException {
-        List<File> result = new ArrayList<File>();
+        List<File> result = new ArrayList<>();
         Drive.Files.List request = service.files().list();
 
         do {
