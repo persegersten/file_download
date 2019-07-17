@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FilesDownloader {
@@ -40,14 +41,7 @@ public class FilesDownloader {
     }
 
     private static void downloadFiles(Drive service, Path localFolder, String remoteID) throws IOException {
-        FileList result = service.files().list()
-                .setQ("'" + remoteID + "' in parents")
-                //.setQ("'appDataFolder' in parents")
-                .setPageSize(100)
-                .setFields("nextPageToken, files(id, name)")
-                .execute();
-
-        List<File> files = result.getFiles();
+        List<File> files = retrieveAllFiles(service, remoteID);
 
         int count = 0;
         int total = 0;
@@ -70,6 +64,29 @@ public class FilesDownloader {
             }
         }
         logger.info("Downloaded {} of {} files", count, total);
+    }
+
+    private static List<File> retrieveAllFiles(Drive service, String parentID) throws IOException {
+        List<File> result = new ArrayList<File>();
+        Drive.Files.List request = service.files().list();
+
+        do {
+            try {
+                FileList files = request.setQ("'" + parentID + "' in parents")
+                        .setFields("nextPageToken, files(id, name)")
+                        .execute();
+
+                result.addAll(files.getFiles());
+                request.setPageToken(files.getNextPageToken());
+                System.out.print(".");
+            } catch (IOException e) {
+                System.out.println("An error occurred: " + e);
+                request.setPageToken(null);
+            }
+        } while (request.getPageToken() != null &&
+                request.getPageToken().length() > 0);
+
+        return result;
     }
 
     private static void download(Drive service, Path locaFilePath, File file) throws IOException {

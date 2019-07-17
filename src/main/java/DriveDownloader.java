@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory;
 import service.*;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,41 +67,40 @@ public class DriveDownloader {
 
     private static List<DriveFolder> fetchFilesInFolder(Drive service, String parentID) {
         try {
-            int counter = 10;
-            FileList result;
-            while (true) {
-                try {
-                    result = service.files().list()
-                            .setQ("'" + parentID + "' in parents and " +
-                                    "mimeType = 'application/vnd.google-apps.folder'")
-                            .setPageSize(100)
-                            .setFields("nextPageToken, files(id, name)")
-                            .execute();
-                    break;
-                } catch (SocketTimeoutException e) {
-                    counter--;
-                    if (counter == 0) {
-                        throw new IllegalStateException(e);
-                    }
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ex) {
-                        throw new IllegalStateException("Failed too many times", e);
-                    }
-                }
-            }
-
-            List<File> files = result.getFiles();
+            List<File> files = retrieveAllFiles(service, parentID);
             if (files == null || files.isEmpty()) {
                 return Collections.emptyList();
             } else {
                 return files.stream().map(f -> createDriveFolder(service, f)).collect(Collectors.toList());
             }
-
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
+
+    private static List<File> retrieveAllFiles(Drive service, String parentID) throws IOException {
+        List<File> result = new ArrayList<File>();
+        Drive.Files.List request = service.files().list();
+
+        do {
+            try {
+                FileList files = request.setQ("'" + parentID + "' in parents and " +
+                        "mimeType = 'application/vnd.google-apps.folder'")
+                        .setFields("nextPageToken, files(id, name)")
+                        .execute();
+
+                result.addAll(files.getFiles());
+                request.setPageToken(files.getNextPageToken());
+            } catch (IOException e) {
+                System.out.println("An error occurred: " + e);
+                request.setPageToken(null);
+            }
+        } while (request.getPageToken() != null &&
+                request.getPageToken().length() > 0);
+
+        return result;
+    }
+
 
     private static DriveFolder createDriveFolder(Drive service, File file) {
         logger.info("{} {}", file.getName(), file.getId());
